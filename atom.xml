@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://wfcpc.github.io</id>
     <title>Gridea</title>
-    <updated>2020-12-18T10:48:21.316Z</updated>
+    <updated>2020-12-18T10:54:56.896Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://wfcpc.github.io"/>
     <link rel="self" href="https://wfcpc.github.io/atom.xml"/>
@@ -16,7 +16,7 @@
         <link href="https://wfcpc.github.io/post/arm64-inline-hook/">
         </link>
         <updated>2020-11-25T05:26:46.000Z</updated>
-        <content type="html"><![CDATA[<p>测试类</p>
+        <content type="html"><![CDATA[<p>##测试类wfcpc.cc</p>
 <pre><code class="language-c++">#include &lt;iostream&gt;
 #include &quot;inlinehook_arm64.h&quot;
 
@@ -63,6 +63,1466 @@ int main()
     return 0;
 	
 }
+</code></pre>
+<p>##接口类inlinehook_arm64.h</p>
+<pre><code class="language-c++">#pragma once
+#ifndef INLINEHOOK_ARM64_H_
+#define INLINEHOOK_ARM64_H_
+
+#include &lt;iostream&gt;
+#include &lt;stdlib.h&gt;
+#include &lt;stdio.h&gt;
+#include &lt;stdint.h&gt;
+#include &lt;string.h&gt;
+#include &lt;sys/mman.h&gt;
+#include &lt;errno.h&gt;
+#include &lt;unistd.h&gt;
+#include &lt;cstdlib&gt;
+#include &lt;math.h&gt;
+#include &lt;string.h&gt;
+#include &lt;unistd.h&gt;
+#include &lt;iomanip&gt;
+
+#include &quot;build_code.h&quot;
+
+		class Inlinehook
+		{
+			
+		private: 
+			void* hook_addr;
+			void* new_addr;
+			void** orig_addr;
+			uint64_t normal_args[8] = { 0 };
+			void hook_start();
+			wfcpc::arm64::BuildCode build;
+		public:
+			Inlinehook(void* hook_addr_,void *new_address_,void** orig_addr_);
+			void check();
+			
+		};
+
+
+#endif // !INLINEHOOK_ARM64_H_
+
+</code></pre>
+<p>##接口实现类inlinehook_arm64.cc</p>
+<pre><code class="language-c++">#include &quot;inlinehook_arm64.h&quot;
+
+
+		
+		Inlinehook::Inlinehook(void* hook_addr_, void* new_address_, void** orig_addr_)
+		{
+			using namespace std;
+			
+			this-&gt;hook_addr = hook_addr_;
+			this-&gt;orig_addr = orig_addr_;
+			this-&gt;new_addr = new_address_;
+			this-&gt;hook_start();
+			
+		}
+		void Inlinehook::hook_start()
+		{
+			using namespace std;
+			cout&lt;&lt;&quot;hook start!&quot;&lt;&lt;endl;
+			this-&gt;build = wfcpc::arm64::BuildCode(this-&gt;hook_addr, this-&gt;new_addr, this-&gt;orig_addr);
+			this-&gt;build.hook_start();
+		}
+		void Inlinehook::check()
+		{
+			this-&gt;build.check();
+		}
+
+</code></pre>
+<p>##汇编类registers_arm64.h</p>
+<pre><code class="language-c++">
+#ifndef WFCPC_REGISTERS_ARM64_H_
+#define WFCPC_REGISTERS_ARM64_H_
+#include &lt;iostream&gt;
+#include &lt;stdlib.h&gt;
+#include &lt;stdio.h&gt;
+#include &lt;stdint.h&gt;
+#include &lt;string.h&gt;
+#include &lt;sys/mman.h&gt;
+#include &lt;errno.h&gt;
+#include &lt;unistd.h&gt;
+#include &lt;cstdlib&gt;
+#include &lt;math.h&gt;
+#include &lt;string.h&gt;
+#include &lt;unistd.h&gt;
+#include &lt;iomanip&gt;
+
+namespace wfcpc
+{
+    namespace arm64
+    {
+        
+        enum registers
+        {
+            q0 = 0,
+            q1 = 1,
+            q2 = 2,
+            q3 = 3,
+            q4 = 4,
+            q5 = 5,
+            q6 = 6,
+            q7 = 7,
+            q8 = 8,
+            q9 = 9,
+            q10 = 10,
+            q11 = 11,
+            q12 = 12,
+            q13 = 13,
+            q14 = 14,
+            q15 = 15,
+            x0 = 0,
+            x1 = 1,
+            x2 = 2,
+            x3 = 3,
+            x4 = 4,
+            x5 = 5,
+            x6 = 6,
+            x7 = 7,
+            x8 = 8,
+            x9 = 9,
+            x10 = 10,
+            x11 = 11,
+            x12 = 12,
+            x13 = 13,
+            x14 = 14,
+            x15 = 15,
+            x16 = 16,
+            x17 = 17,
+            x18 = 18,
+            x19 = 19,
+            x20 = 20,
+            x21 = 21,
+            x22 = 22,
+            x23 = 23,
+            x24 = 24,
+            x25 = 25,
+            x26 = 26,
+            x27 = 27,
+            x28 = 28,
+            x29 = 29,
+            x30 = 30,
+            fp = 29,
+            lr = 30,
+            sp = 31,
+        };
+        uint32_t binToCode(bool* boo);
+        void insertDec(bool * boo,int number,int pos,int width);
+        uint32_t ldrImmi(uint32_t offset, enum registers rt, bool x64Ins);
+        void insertReg(bool* boo, enum registers register_, int pos);
+        uint32_t br(enum registers rn);
+        uint64_t reverseAddr(uint64_t addr);
+        uint32_t binToCode2(bool* boo);
+        uint32_t  blr(enum registers rn);
+        uint32_t ret();
+        uint32_t ldp_signed_offset(int32_t imm, enum registers rt2, enum registers rn, enum registers rt1, bool x64Ins);
+
+        uint32_t sub(uint16_t imm,enum registers rn,enum registers rd);
+        void insertOffset(bool* boo, int number, int pos, int width, bool x64Ins);
+        uint32_t stp(int32_t imm, enum registers rt2, enum registers rn, enum registers rt1, bool x64Ins);
+        uint32_t ldp(int8_t imm,enum registers rt2,enum registers rn,enum registers rt1,bool x64Ins);
+        uint32_t add(uint16_t imm,enum registers rn,enum registers rd);
+        uint32_t mov(uint16_t imm,enum registers rn,enum registers rd,bool x64Ins);
+        void insertOffset2(bool* boo, int number, int pos, int width, bool x64Ins);
+        uint32_t mrs_NZCV(enum registers rt);
+        uint32_t msr_NZCV(enum registers rt);
+        uint32_t mov_Reg(enum registers rn,enum registers rd,bool Reg64);
+        uint32_t nop();
+
+    } // namespace arm64
+}
+#endif
+</code></pre>
+<p>##汇编实现类registers_arm64.cc</p>
+<pre><code class="language-c++">#include &quot;registers_arm64.h&quot;
+#include &lt;iostream&gt;
+#include &lt;stdlib.h&gt;
+#include &lt;stdio.h&gt;
+#include &lt;stdint.h&gt;
+#include &lt;string.h&gt;
+#include &lt;sys/mman.h&gt;
+#include &lt;errno.h&gt;
+#include &lt;unistd.h&gt;
+#include &lt;cstdlib&gt;
+#include &lt;math.h&gt;
+#include &lt;string.h&gt;
+#include &lt;unistd.h&gt;
+#include &lt;iomanip&gt;
+namespace wfcpc
+{
+    namespace arm64
+    {
+        
+        uint32_t binToCode2(bool* boo)
+        {
+
+            uint32_t result = 0;
+            int times = 0;
+            for (int i = 31; i &gt;= 0; i--)
+            {
+                result = result + boo[i] * uint32_t(pow(2, times));
+                times++;
+            }
+            return result;
+        }
+        void insertReg(bool* boo, enum registers reg, int pos)
+        {
+            int int_reg = int(reg);
+            int loop = 5;
+            while (loop != 0 &amp;&amp; int_reg != 0)
+            {
+                boo[pos--] = int_reg % 2;
+                int_reg /= 2;
+                loop--;
+            }
+        }
+        void insertDec(bool* boo, int number, int pos, int width)
+        {
+            if (number &gt; 0)
+            {
+                while (width != 0 &amp;&amp; number != 0)
+                {
+                    boo[pos--] = number % 2;
+                    number /= 2;
+                    width--;
+                }
+            }
+            else
+            {
+                number = abs(number);
+                while (width != 0 &amp;&amp; number != 0)
+                {
+                    boo[pos--] = number % 2;
+                    number /= 2;
+                    width--;
+                }
+                boo[pos - width + 1] = 1;
+                for (int j = pos - width + 2; j &lt;= pos; j++)
+                    boo[j] = boo[j] == 1 ? 0 : 1;
+                bool up = true;
+                for (int j = pos; j &gt; pos - width + 1; j--)
+                {
+                    if (boo[j] == 1 &amp;&amp; up)
+                    {
+                        up = true;
+                        boo[j] = 0;
+                    }
+                    else if (boo[j] == 0 &amp;&amp; up)
+                    {
+                        up = false;
+                        boo[j] = 1;
+                    }
+                    if (!up)
+                        break;
+                }
+            }
+        }
+        void insertOffset(bool* boo, int number, int pos, int width, bool x64Ins)
+        {
+            if (number &gt; 0)
+            {
+                number = number / 16;
+                if (number &gt;= 1 &amp;&amp; !x64Ins)
+                    boo[pos--] = 0;
+                while (width != 0 &amp;&amp; number != 0)
+                {
+                    boo[pos--] = number % 2;
+                    number /= 2;
+                    width--;
+                }
+            }
+            else if (number &lt; 0)
+            {
+                number = abs(number);
+                number = number / 16;
+                if (!x64Ins)
+                {
+                    number *= 2;
+                }
+                while (width != 0 &amp;&amp; number != 0)
+                {
+                    boo[pos--] = number % 2;
+                    number /= 2;
+                    width--;
+                }
+                boo[pos - width + 1] = 1;
+                for (int j = pos - width + 2; j &lt;= pos; j++)
+                    boo[j] = boo[j] == 1 ? 0 : 1;
+                bool up = true;
+                for (int j = pos; j &gt; pos - width + 1; j--)
+                {
+                    if (boo[j] == 1 &amp;&amp; up)
+                    {
+                        up = true;
+                        boo[j] = 0;
+                    }
+                    else if (boo[j] == 0 &amp;&amp; up)
+                    {
+                        up = false;
+                        boo[j] = 1;
+                    }
+                    if (!up)
+                        break;
+                }
+            }
+
+        }
+        void insertOffset2(bool* boo, int number, int pos, int width, bool x64Ins)
+        {
+            using namespace std;
+            if (number &gt; 0)
+            {
+                number = number / 16;
+                if (number &gt;= 1 &amp;&amp; !x64Ins)
+                {
+                    boo[pos--] = 0;
+                    width--;
+                }
+                while (width != 0 &amp;&amp; number != 0)
+                {
+                    boo[pos--] = number % 2;
+                    number /= 2;
+                    width--;
+                }
+            }
+            else if (number &lt; 0)
+            {
+                number = abs(number);
+                number = number / 16;
+                if (!x64Ins)
+                {
+                    number *= 2;
+                }
+                while (width != 0 &amp;&amp; number != 0)
+                {
+                    boo[pos--] = number % 2;
+                    number /= 2;
+                    width--;
+                }
+                boo[pos - width + 1] = 1;
+                for (int j = pos - width + 2; j &lt;= pos; j++)
+                    boo[j] = boo[j] == 1 ? 0 : 1;
+                bool up = true;
+                for (int j = pos; j &gt; pos - width + 1; j--)
+                {
+                    if (boo[j] == 1 &amp;&amp; up)
+                    {
+                        up = true;
+                        boo[j] = 0;
+                    }
+                    else if (boo[j] == 0 &amp;&amp; up)
+                    {
+                        up = false;
+                        boo[j] = 1;
+                    }
+                    if (!up)
+                        break;
+                }
+            }
+
+        }
+
+
+        uint32_t ldrImmi(uint32_t offset, enum registers rt, bool x64Ins)
+        {
+            int immi = int(offset);
+            bool ans[32] = { 0 };
+            int i = 0;
+            ans[i++] = 0;
+            ans[i++] = x64Ins;
+            ans[i++] = 0;
+            ans[i++] = 1;
+
+            ans[i++] = 1;
+            ans[i++] = 0;
+            ans[i++] = 0;
+            ans[i++] = 0;
+            insertDec(ans, immi, 26, 19);
+            insertReg(ans, rt, 31);
+            return binToCode2(ans);
+        }
+
+        uint32_t binToCode(bool* boo)
+        {
+
+            for (int i = 0; i &lt; 2; i++)
+            {
+                for (int j = 0; j &lt; 8; j++)
+                {
+                    bool temp = boo[i * 8 + j];
+                    boo[i * 8 + j] = boo[31 - 8 * i - (7 - j)];
+                    boo[31 - 8 * i - (7 - j)] = temp;
+                }
+            }
+            uint32_t result = 0;
+            int times = 0;
+            for (int i = 31; i &gt;= 0; i--)
+            {
+                result = result + boo[i] * uint32_t(pow(2, times));
+                times++;
+            }
+            return result;
+        }
+        uint32_t br(enum registers rn)
+        {
+            bool ans[32] = { 0 };
+            int i = 0;
+            ans[i++] = 1;
+            ans[i++] = 1;
+            ans[i++] = 0;
+            ans[i++] = 1;
+
+            ans[i++] = 0;
+            ans[i++] = 1;
+            ans[i++] = 1;
+            ans[i++] = 0;
+
+            ans[i++] = 0;
+            ans[i++] = 0;
+            ans[i++] = 0;
+            ans[i++] = 1;
+
+            ans[i++] = 1;
+            ans[i++] = 1;
+            ans[i++] = 1;
+            ans[i++] = 1;
+
+            ans[i++] = 0;
+            ans[i++] = 0;
+            ans[i++] = 0;
+            ans[i++] = 0;
+
+            ans[i++] = 0;
+            ans[i++] = 0;
+            insertReg(ans, rn, 26);
+            i = 27;
+            ans[i++] = 0;
+            ans[i++] = 0;
+            ans[i++] = 0;
+            ans[i++] = 0;
+            ans[i++] = 0;
+            return binToCode2(ans);
+        }
+        uint64_t reverseAddr(uint64_t addr)
+        {
+            uint64_t result = 0;
+            for (int i = 0; i &lt; 8; i++)
+            {
+                uint64_t temp = addr - addr / 0x100 * 0x100;
+                result += temp;
+                if (i != 7)
+                    result *= 0x100;
+                addr = addr / 0x100;
+            }
+            return result;
+        }
+
+        uint32_t blr(enum registers rn)
+        {
+            bool ans[32] = { 0 };
+            int i = 0;
+            ans[i++] = 1;
+            ans[i++] = 1;
+            ans[i++] = 0;
+            ans[i++] = 1;
+
+            ans[i++] = 0;
+            ans[i++] = 1;
+            ans[i++] = 1;
+            ans[i++] = 0;
+
+            ans[i++] = 0;
+            ans[i++] = 0;
+            ans[i++] = 1;
+            ans[i++] = 1;
+
+            ans[i++] = 1;
+            ans[i++] = 1;
+            ans[i++] = 1;
+            ans[i++] = 1;
+
+            ans[i++] = 0;
+            ans[i++] = 0;
+            ans[i++] = 0;
+            ans[i++] = 0;
+
+            ans[i++] = 0;
+            ans[i++] = 0;
+            insertReg(ans, rn, 26);
+            i = 27;
+            ans[i++] = 0;
+            ans[i++] = 0;
+            ans[i++] = 0;
+            ans[i++] = 0;
+            ans[i++] = 0;
+            return binToCode2(ans);
+        }
+
+        uint32_t ret()
+        {
+            //return 0xC0035FD6;
+            return 0xD65F03C0;
+        }
+
+        uint32_t sub(uint16_t imm, enum registers rn, enum registers rd)
+        {
+            bool sf = 1, sh = 0;
+            int immi = int(imm);
+            bool ans[32] = { 0 };
+            int i = 0;
+            ans[i++] = sf;
+            ans[i++] = 1;
+            ans[i++] = 0;
+            ans[i++] = 1;
+
+            ans[i++] = 0;
+            ans[i++] = 0;
+            ans[i++] = 0;
+            ans[i++] = 1;
+
+            ans[i++] = 0;
+            ans[i++] = sh;
+
+            insertDec(ans, immi, 21, 12);
+            insertReg(ans, rn, 26);
+            insertReg(ans, rd, 31);
+            return binToCode2(ans);
+        }
+        uint32_t stp(int32_t imm, enum registers rt2, enum registers rn, enum registers rt1, bool x64Ins)
+        {
+            int immi = int(abs(imm));
+            bool ans[32] = { 0 };
+            int i = 0;
+            if (x64Ins)
+            {
+                ans[i++] = 1;
+                ans[i++] = 0;
+                ans[i++] = 1;
+                ans[i++] = 0;
+                ans[i++] = 1;
+                ans[i++] = 1;
+                ans[i++] = 0;
+                ans[i++] = 1;
+                ans[i++] = 0;
+                ans[i++] = 0;
+            }
+            else
+            {
+
+                ans[i++] = 1;
+                ans[i++] = 0;
+                ans[i++] = 1;
+                ans[i++] = 0;
+                ans[i++] = 1;
+                ans[i++] = 0;
+                ans[i++] = 0;
+                ans[i++] = 1;
+                ans[i++] = 0;
+                ans[i++] = 0;
+            }
+            insertOffset(ans, immi, 16, 7, x64Ins);
+            insertReg(ans, rt2, 21);
+            insertReg(ans, rn, 26);
+            insertReg(ans, rt1, 31);
+            return binToCode2(ans);
+        }
+
+        uint32_t ldp(int32_t imm, enum registers rt2, enum registers rn, enum registers rt1, bool x64Ins)
+        {
+            int immi = int(abs(imm));
+            bool ans[32] = { 0 };
+            int i = 0;
+            if (x64Ins)
+                ans[i++] = 1;
+            else
+                ans[i++] = 1;
+            ans[i++] = 0;
+            ans[i++] = 1;
+            ans[i++] = 0;
+
+            ans[i++] = 1;
+            ans[i++] = 0;
+            ans[i++] = 0;
+            ans[i++] = 0;
+
+            ans[i++] = 1;
+            ans[i++] = 1;
+
+            insertOffset2(ans, immi, 16, 7, x64Ins);
+            insertReg(ans, rt2, 21);
+            insertReg(ans, rn, 26);
+            insertReg(ans, rt1, 31);
+            return binToCode2(ans);
+        }
+        uint32_t add(uint16_t imm, enum registers rn, enum registers rd)
+        {
+            bool sf = 1, sh = 0;
+            int immi = int(imm);
+            bool ans[32] = { 0 };
+            int i = 0;
+            ans[i++] = sf;
+            ans[i++] = 0;
+            ans[i++] = 0;
+            ans[i++] = 1;
+
+            ans[i++] = 0;
+            ans[i++] = 0;
+            ans[i++] = 0;
+            ans[i++] = 1;
+
+            ans[i++] = 0;
+            ans[i++] = sh;
+
+            insertDec(ans, immi, 21, 12);
+            insertReg(ans, rn, 26);
+            insertReg(ans, rd, 31);
+            return binToCode2(ans);
+        }
+        uint32_t mov(uint16_t imm, enum registers rn, enum registers rd, bool x64Ins)
+        {
+            int immi = int(imm);
+            bool ans[32] = { 0 };
+            int i = 0;
+            ans[i++] = x64Ins;
+            ans[i++] = 0;
+            ans[i++] = 1;
+            ans[i++] = 1;
+
+            ans[i++] = 0;
+            ans[i++] = 0;
+            ans[i++] = 0;
+            ans[i++] = 1;
+
+            ans[i++] = 0;
+            ans[i++] = 0;
+            insertDec(ans, immi, 21, 12);
+            insertReg(ans, rn, 26);
+            insertReg(ans, rd, 31);
+            return binToCode2(ans);
+
+
+        }
+        uint32_t ldp_signed_offset(int32_t imm, enum registers rt2, enum registers rn, enum registers rt1, bool x64Ins)
+        {
+            int immi = int(abs(imm));
+            bool ans[32] = { 0 };
+            int i = 0;
+        
+            ans[i++] = 1;
+            ans[i++] = 0;
+            ans[i++] = 1;
+            ans[i++] = 0;
+
+            ans[i++] = 1;
+            if (x64Ins)
+                ans[i++]=1;
+            else
+                ans[i++] = 0;
+            ans[i++] = 0;
+            
+            ans[i++] = 1;
+
+            ans[i++] = 0;
+            ans[i++] = 1;
+
+            insertOffset2(ans, immi, 16, 7, x64Ins);
+            insertReg(ans, rt2, 21);
+            insertReg(ans, rn, 26);
+            insertReg(ans, rt1, 31);
+            return binToCode2(ans);
+        }
+
+        uint32_t mrs_NZCV(enum registers rt)
+        {
+            bool ans[32]={
+                1,1,0,1,
+                0,1,0,1,
+                0,0,
+                1,//L=1
+                1,1,//op0=11
+                0,1,1,//op1=011
+                0,1,0,0,//CRn=0100
+                0,0,1,0,//CRm=0010
+                0,0,0,//op2=000
+                //rt
+
+            };
+            insertReg(ans,rt,31);
+            return binToCode2(ans);
+        }
+        uint32_t msr_NZCV(enum registers rt)
+        {
+            bool ans[32]={
+                1,1,0,1,
+                0,1,0,1,
+                0,0,
+                0,//L=0
+                1,1,//op0=11
+                0,1,1,//op1=011
+                0,1,0,0,//CRn=0100
+                0,0,1,0,//CRm=0010
+                0,0,0,//op2=000
+                //rt
+
+            };
+            insertReg(ans,rt,31);
+            return binToCode2(ans);
+        }
+        uint32_t mov_Reg(enum registers rn,enum registers rd,bool Reg64)
+        {
+            bool ans[32];
+            int i=0;
+            ans[i++]=Reg64;
+            ans[i++]=0;
+            ans[i++]=1;
+            ans[i++]=0;
+
+            ans[i++]=1;
+            ans[i++]=0;
+            ans[i++]=1;
+            ans[i++]=0;
+
+            ans[i++]=0;
+            ans[i++]=0;
+            ans[i++]=0;
+            insertReg(ans,rn,21);
+            i+=4;
+
+            ans[i++]=1;
+            ans[i++]=1;
+            ans[i++]=1;
+            ans[i++]=1;
+            ans[i++]=1;
+            insertReg(ans,rd,31);
+            return binToCode2(ans);
+
+        }
+
+        uint32_t nop()
+        {
+            return 0xD503201F;
+        }
+
+    } // namespace arm64
+}
+
+           
+</code></pre>
+<p>##临时代码保存类codes_arm64.h</p>
+<pre><code class="language-c++">#pragma once
+#ifndef CODES_ARM64_H_
+#define CODES_ARM64_H_
+#include &quot;registers_arm64.h&quot;
+#include &lt;iostream&gt;
+#include &lt;stdlib.h&gt;
+#include &lt;stdio.h&gt;
+#include &lt;stdint.h&gt;
+#include &lt;string.h&gt;
+#include &lt;sys/mman.h&gt;
+#include &lt;errno.h&gt;
+#include &lt;unistd.h&gt;
+#include &lt;cstdlib&gt;
+#include &lt;math.h&gt;
+#include &lt;string.h&gt;
+#include &lt;unistd.h&gt;
+#include &lt;iomanip&gt;
+//#include &lt;asm/cacheflush.h&gt;
+namespace wfcpc
+{
+	namespace arm64
+	{
+		class Codes
+		{
+		
+		public:
+			Codes(int size_);
+			Codes();
+			int position=0;
+			int size;
+			uint8_t *code;
+			void emit(uint32_t c);
+			void emit(uint64_t c);
+			void * code_address;
+			void show_code_addr();
+		};
+	}
+}
+#endif // !CODES_ARM64_H_
+
+</code></pre>
+<p>##临时代码保存实现类codes_arm64.cc</p>
+<pre><code class="language-c++">#include &quot;codes_arm64.h&quot;
+namespace wfcpc
+{
+	namespace arm64
+	{
+		Codes::Codes(int size_)
+		{
+			this-&gt;size = size_;
+			this-&gt;code =(uint8_t*)malloc(sizeof(uint8_t)*size_) ;//new uint8_t(size_);
+			this-&gt;code_address=(void*)this-&gt;code;
+		}
+		Codes::Codes()
+		{}
+		void Codes::emit(uint32_t c)
+		{
+			// using namespace std;
+			// cout&lt;&lt;&quot;got uint32_t ins!&quot;&lt;&lt;endl;
+			// cout&lt;&lt;setw(2)&lt;&lt;setfill('0')&lt;&lt;hex&lt;&lt;(uint64_t)c&lt;&lt;endl;
+			memcpy(this-&gt;code+this-&gt;position, &amp;c, sizeof(c));
+			this-&gt;position += 4;
+			// cout&lt;&lt;&quot;now codes&quot;&lt;&lt;endl;
+			// for(int i=0;i&lt;this-&gt;size;i++)
+			// {
+			// 	cout&lt;&lt;setw(2)&lt;&lt;setfill('0')&lt;&lt;hex&lt;&lt;(uint64_t)this-&gt;code[i]&lt;&lt;&quot; &quot;;
+			// }
+			// cout&lt;&lt;endl;
+			// cout&lt;&lt;&quot;----------end---------&quot;&lt;&lt;endl;
+		}
+		void Codes::emit(uint64_t c)
+		{
+			memcpy(this-&gt;code + this-&gt;position, &amp;c, sizeof(c));
+			this-&gt;position += 8;
+		}
+		void Codes::show_code_addr()
+		{
+			using namespace std;
+			cout&lt;&lt;hex&lt;&lt;(uint64_t)(void *)this-&gt;code&lt;&lt;&quot; &quot;;
+
+			
+		}
+	}
+}
+</code></pre>
+<p>##hook实现类build_code.h</p>
+<pre><code class="language-c++">#pragma warning(disable : 4248)
+#ifndef BUILD_CODE_H_
+#define BUILD_CODE_H_
+#include &quot;codes_arm64.h&quot;
+#include &quot;registers_arm64.h&quot;
+#include &lt;iostream&gt;
+#include &lt;stdlib.h&gt;
+#include &lt;stdio.h&gt;
+#include &lt;stdint.h&gt;
+#include &lt;string.h&gt;
+#include &lt;sys/mman.h&gt;
+#include &lt;errno.h&gt;
+#include &lt;unistd.h&gt;
+#include &lt;cstdlib&gt;
+#include &lt;math.h&gt;
+#include &lt;string.h&gt;
+#include &lt;unistd.h&gt;
+#include &lt;iomanip&gt;
+namespace wfcpc
+{
+	namespace arm64
+	{
+		class BuildCode
+		{
+			
+		public:
+			BuildCode(void* hook_addr_, void* new_address_, void** orig_addr_);
+			BuildCode();
+			void* hook_addr;
+			void* new_addr;
+			void** orig_addr;
+			uint64_t normal_args[8] ;
+			long double neon_args[8];
+			Codes code_before= Codes(65*4);//60*4
+			Codes code_after = Codes(53*4);//
+			Codes jmp_code = Codes(16);
+			Codes back_up = Codes(16);
+		
+
+			void* func_before;
+			void* func_after;
+			int pagesize;
+			//void get_args();
+			void set_mem_RWE();
+			void set_mem_RE();
+			void build_step_1();
+			void build_step_2();
+			void build_step_3();
+			void build_step_4();
+			void build_step_5();
+
+			void check();
+			void hook_start();
+			//void check_register();
+
+			//void get_ret(uint64_t xr,long double qr);
+			//void check_orig_ret();
+			void check_new_ret();
+			//uint64_t set_new_func();
+			//void get_ret_sp(uint64_t temp);
+			//void check_ret();
+			
+			//void (*PFunctionName)();
+			
+		};
+	}
+}
+
+
+#endif // !BUILD_CODE_H_
+
+</code></pre>
+<p>##hook实现类build_code.cc</p>
+<pre><code class="language-c++">#include &quot;build_code.h&quot;
+
+namespace wfcpc
+{
+	namespace arm64
+	{
+		uint64_t Normal_Registers[8];
+		long double Neon_Registers[8];
+		uint64_t (*template_new_func)(uint64_t a,uint64_t b,uint64_t c,uint64_t d,uint64_t e,
+									  uint64_t f,uint64_t g,uint64_t h,long double i,long double j,long double k,long double l
+				,long double m,long double n,long double o,long double p);
+		uint64_t template_orig_func();
+		uint64_t (*template_orig_func_pointer)();
+		void get_args();
+		void (*get_args_pointer)()=get_args;
+		void check_register();
+		void get_ret(uint64_t xr,long double qr);
+		void (*get_ret_pointer)(uint64_t xr,long double qr)=get_ret;
+		void check_orig_ret();
+		uint64_t set_new_func();
+		uint64_t (*set_new_func_pointer)()=set_new_func;
+		void get_ret_sp(uint64_t ret);
+		
+
+
+
+		BuildCode::BuildCode()
+		{}
+		BuildCode::BuildCode(void* hook_addr_, void* new_address_, void** orig_addr_)
+		{
+
+			this-&gt;hook_addr = hook_addr_;
+			this-&gt;orig_addr = orig_addr_;
+			this-&gt;new_addr = new_address_;
+		}
+		void BuildCode::hook_start()
+		{
+			this-&gt;pagesize = sysconf(_SC_PAGE_SIZE);
+			if (this-&gt;pagesize == -1)
+			{
+				exit(errno);
+			}
+			this-&gt;func_before = mmap(nullptr, this-&gt;pagesize, PROT_READ, MAP_ANONYMOUS | MAP_PRIVATE, 0, 0);
+			this-&gt;func_after = mmap(nullptr, this-&gt;pagesize, PROT_READ, MAP_ANONYMOUS | MAP_PRIVATE, 0, 0);
+			template_new_func=(uint64_t (*)(uint64_t a,uint64_t b,uint64_t c,uint64_t d,uint64_t e,
+											uint64_t f,uint64_t g,uint64_t h,long double i,long double j,long double k,long double l
+					,long double m,long double n,long double o,long double p))(this-&gt;new_addr);
+			template_orig_func_pointer=template_orig_func;
+			*(this-&gt;orig_addr)=*(void **)&amp;template_orig_func_pointer;
+			using namespace std;
+			cout&lt;&lt;&quot;hook address&quot;&lt;&lt;(uint64_t)this-&gt;hook_addr&lt;&lt;endl;
+			cout&lt;&lt;&quot;new address&quot;&lt;&lt;(uint64_t)this-&gt;new_addr&lt;&lt;endl;
+			cout&lt;&lt;&quot;func_before address=&quot;&lt;&lt;(uint64_t)this-&gt;func_before&lt;&lt;endl;
+			cout&lt;&lt;&quot;func_after address=&quot;&lt;&lt;(uint64_t)this-&gt;func_after&lt;&lt;endl;
+			cout&lt;&lt;&quot;get args address=&quot;&lt;&lt;hex&lt;&lt;(uint64_t)get_args_pointer&lt;&lt;endl;
+			this-&gt;set_mem_RWE();
+			this-&gt;build_step_1();
+			this-&gt;build_step_2();
+			this-&gt;build_step_3();
+			this-&gt;build_step_4();
+			this-&gt;build_step_5();
+			sleep(1);
+			this-&gt;set_mem_RE();
+		}
+		void BuildCode::check()
+		{
+			using namespace std;
+			cout&lt;&lt;&quot;---------------check program start!--------------&quot;&lt;&lt;endl;
+
+			uint8_t *temp=(uint8_t *)this-&gt;hook_addr;
+			cout&lt;&lt;&quot;jmp code at:&quot;&lt;&lt;hex&lt;&lt;(uint64_t)this-&gt;hook_addr&lt;&lt;endl;
+			for(int i=0;i&lt;16;i++)
+			{
+				cout&lt;&lt;setw(2)&lt;&lt;setfill('0')&lt;&lt;hex&lt;&lt;(uint64_t)temp[i]&lt;&lt;&quot; &quot;;
+			}
+			cout&lt;&lt;endl;
+			temp=(uint8_t *)this-&gt;func_before;
+			cout&lt;&lt;&quot;shell code at:&quot;&lt;&lt;hex&lt;&lt;(uint64_t)this-&gt;func_before&lt;&lt;endl;
+			for(int i=0;i&lt;57*4;i++)
+			{
+				cout&lt;&lt;setw(2)&lt;&lt;setfill('0')&lt;&lt;hex&lt;&lt;(uint64_t)temp[i]&lt;&lt;&quot; &quot;;
+			}
+			cout&lt;&lt;endl;
+		}
+
+		void BuildCode::build_step_1()//ԭ����λ��
+		{
+			using namespace std;
+
+
+			this-&gt;jmp_code.emit(ldrImmi(2, x28, true));//jmp code
+			this-&gt;jmp_code.emit(br(x28));
+			this-&gt;jmp_code.emit((uint64_t)this-&gt;func_before);
+			cout&lt;&lt;&quot;----------------orig code-------------------&quot;&lt;&lt;endl;
+			uint8_t *temp=(uint8_t*)this-&gt;hook_addr;
+			for (int i=0;i&lt;16;i++)
+			{
+				cout&lt;&lt;setw(2)&lt;&lt;setfill('0')&lt;&lt;hex&lt;&lt;(uint64_t)temp[i]&lt;&lt;&quot; &quot;;
+			}
+			cout&lt;&lt;endl;
+			cout&lt;&lt;&quot;-------------------end----------------------&quot;&lt;&lt;endl;
+			cout&lt;&lt;&quot;----------------jmp code-------------------&quot;&lt;&lt;endl;
+			for (int i=0;i&lt;16;i++)
+			{
+				cout&lt;&lt;setw(2)&lt;&lt;setfill('0')&lt;&lt;hex&lt;&lt;(uint64_t)this-&gt;jmp_code.code[i]&lt;&lt;&quot; &quot;;
+			}
+			cout&lt;&lt;endl;
+			cout&lt;&lt;&quot;-------------------end----------------------&quot;&lt;&lt;endl;
+			memcpy(this-&gt;back_up.code,this-&gt;hook_addr,sizeof(uint8_t)*16);//backup
+			cout&lt;&lt;&quot;----------------backup code-------------------&quot;&lt;&lt;endl;
+			for (int i=0;i&lt;16;i++)
+			{
+				cout&lt;&lt;setw(2)&lt;&lt;setfill('0')&lt;&lt;hex&lt;&lt;(uint64_t)this-&gt;back_up.code[i]&lt;&lt;&quot; &quot;;
+			}
+			cout&lt;&lt;endl;
+			cout&lt;&lt;&quot;-------------------end----------------------&quot;&lt;&lt;endl;
+
+
+		}
+		void BuildCode::build_step_2()
+		{
+			this-&gt;code_before.emit(mrs_NZCV(x28));
+			this-&gt;code_before.emit(sub(0xf0, sp, sp));
+			this-&gt;code_before.emit(stp(0x0, x1, sp, x0, false));
+			this-&gt;code_before.emit(stp(0x10, x3, sp, x2, false));
+			this-&gt;code_before.emit(stp(0x20, x5, sp, x4, false));
+			this-&gt;code_before.emit(stp(0x30, x7, sp, x6, false));
+			this-&gt;code_before.emit(stp(0x40, x9, sp, x8, false));
+			this-&gt;code_before.emit(stp(0x50, x11, sp, x10, false));
+			this-&gt;code_before.emit(stp(0x60, x13, sp, x12, false));
+			this-&gt;code_before.emit(stp(0x70, x15, sp, x14, false));
+			this-&gt;code_before.emit(stp(0x80, x17, sp, x16, false));
+			this-&gt;code_before.emit(stp(0x90, x19, sp, x18, false));
+			this-&gt;code_before.emit(stp(0xA0, x21, sp, x20, false));
+			this-&gt;code_before.emit(stp(0xB0, x23, sp, x22, false));
+			this-&gt;code_before.emit(stp(0xC0, x25, sp, x24, false));
+			this-&gt;code_before.emit(stp(0xD0, x27, sp, x26, false));
+			this-&gt;code_before.emit(stp(0xE0, lr, sp, fp, false));
+			this-&gt;code_before.emit(sub(0x80, sp, sp));
+			this-&gt;code_before.emit(stp(0x0, q1, sp, q0, true));
+			this-&gt;code_before.emit(stp(0x20, q3, sp, q2, true));
+			this-&gt;code_before.emit(stp(0x40, q5, sp, q4, true));
+			this-&gt;code_before.emit(stp(0x60, q7, sp, q6, true));
+			this-&gt;code_before.emit(0x910003E0);//传入x0
+			//E0 03 00 91
+			this-&gt;code_before.emit(ldrImmi(31, x28, true));
+			this-&gt;code_before.emit(blr(x28));
+
+			this-&gt;code_before.emit(ldp_signed_offset(0x0, q1, sp, q0, true));
+			this-&gt;code_before.emit(ldp_signed_offset(0x20, q3, sp, q2, true));
+			this-&gt;code_before.emit(ldp_signed_offset(0x40, q5, sp, q4, true));
+			this-&gt;code_before.emit(ldp_signed_offset(0x60, q7, sp, q6, true));
+			this-&gt;code_before.emit(add(0x80, sp, sp));
+			this-&gt;code_before.emit(ldp_signed_offset(0x0, x1, sp, x0, false));
+			this-&gt;code_before.emit(ldp_signed_offset(0x10, x3, sp, x2, false));
+			this-&gt;code_before.emit(ldp_signed_offset(0x20, x5, sp, x4, false));
+			this-&gt;code_before.emit(ldp_signed_offset(0x30, x7, sp, x6, false));
+			this-&gt;code_before.emit(ldp_signed_offset(0x40, x9, sp, x8, false));
+			this-&gt;code_before.emit(ldp_signed_offset(0x50, x11, sp, x10, false));
+			this-&gt;code_before.emit(ldp_signed_offset(0x60, x13, sp, x12, false));
+			this-&gt;code_before.emit(ldp_signed_offset(0x70, x15, sp, x14, false));
+			this-&gt;code_before.emit(ldp_signed_offset(0x80, x17, sp, x16, false));
+			this-&gt;code_before.emit(ldp_signed_offset(0x90, x19, sp, x18, false));
+			this-&gt;code_before.emit(ldp_signed_offset(0xA0, x21, sp, x20, false));
+			this-&gt;code_before.emit(ldp_signed_offset(0xB0, x23, sp, x22, false));
+			this-&gt;code_before.emit(ldp_signed_offset(0xC0, x25, sp, x24, false));
+			this-&gt;code_before.emit(ldp_signed_offset(0xD0, x27, sp, x26, false));
+			this-&gt;code_before.emit(ldp_signed_offset(0xE0, lr, sp, fp, false));
+			this-&gt;code_before.emit(add(0xf0, sp, sp));
+			this-&gt;code_before.emit(msr_NZCV(x28));
+			this-&gt;code_before.emit(ldrImmi(11,lr,true));//修改lr寄存器，指向after
+			
+			memcpy(this-&gt;code_before.code + this-&gt;code_before.position, this-&gt;hook_addr, sizeof(uint8_t) * 16);//备份指令复原
+			this-&gt;code_before.position += 16;
+
+
+			this-&gt;code_before.emit(ldrImmi(4, x28, true));//跳转回原函数
+			this-&gt;code_before.emit(br(x28));
+			this-&gt;code_before.emit((uint64_t)get_args_pointer);//获取函数开始时寄存器
+			this-&gt;code_before.emit((uint64_t)hook_addr + 16);//返回函数继续执行
+			this-&gt;code_before.emit((uint64_t)this-&gt;func_after);//指向函数执行完成后函数
+
+			// this-&gt;code_before.emit(nop());
+			// this-&gt;code_before.emit(ldrImmi(2,x28,true));
+			// this-&gt;code_before.emit(br(x28));
+			// this-&gt;code_before.emit((uint64_t)hook_addr+13*4);
+
+			memcpy(this-&gt;hook_addr, this-&gt;jmp_code.code_address, sizeof(uint8_t) * 16);
+			memcpy(this-&gt;func_before, this-&gt;code_before.code_address, sizeof(uint8_t) * this-&gt;code_before.size);
+
+
+		}
+		void BuildCode::build_step_3()
+		{
+
+			using namespace std;
+
+			cout&lt;&lt;&quot;----------------jmp code recheck-------------------&quot;&lt;&lt;endl;
+			for (int i=0;i&lt;16;i++)
+			{
+				cout&lt;&lt;setw(2)&lt;&lt;setfill('0')&lt;&lt;hex&lt;&lt;(uint64_t)this-&gt;jmp_code.code[i]&lt;&lt;&quot; &quot;;
+			}
+			cout&lt;&lt;endl;
+			cout&lt;&lt;&quot;------------check jmp code-------------&quot;&lt;&lt;endl;
+			uint8_t *temp=(uint8_t *)this-&gt;hook_addr;
+			for(int i=0;i&lt;16;i++)
+			{
+				//temp[i]=this-&gt;jmp_code.code[i];
+				cout&lt;&lt;setw(2)&lt;&lt;setfill('0')&lt;&lt;hex&lt;&lt;(uint64_t)temp[i]&lt;&lt;&quot; &quot;;
+			}
+			cout&lt;&lt;endl;
+			cout&lt;&lt;&quot;------------------end--------------&quot;&lt;&lt;endl;
+			cout&lt;&lt;&quot;------------check shell code-------------&quot;&lt;&lt;endl;
+			temp=(uint8_t *)this-&gt;func_before;
+			for(int i=0;i&lt;60*4;i++)
+			{
+				cout&lt;&lt;setw(2)&lt;&lt;setfill('0')&lt;&lt;hex&lt;&lt;(uint64_t)temp[i]&lt;&lt;&quot; &quot;;
+			}
+			cout&lt;&lt;endl;
+			cout&lt;&lt;&quot;------------------end--------------&quot;&lt;&lt;endl;
+		}
+		void BuildCode::build_step_4()
+		{
+			this-&gt;code_after.emit(mrs_NZCV(x28));
+			this-&gt;code_after.emit(sub(0xf0, sp, sp));
+			this-&gt;code_after.emit(stp(0x0, x1, sp, x0, false));
+			this-&gt;code_after.emit(stp(0x10, x3, sp, x2, false));
+			this-&gt;code_after.emit(stp(0x20, x5, sp, x4, false));
+			this-&gt;code_after.emit(stp(0x30, x7, sp, x6, false));
+			this-&gt;code_after.emit(stp(0x40, x9, sp, x8, false));
+			this-&gt;code_after.emit(stp(0x50, x11, sp, x10, false));
+			this-&gt;code_after.emit(stp(0x60, x13, sp, x12, false));
+			this-&gt;code_after.emit(stp(0x70, x15, sp, x14, false));
+			this-&gt;code_after.emit(stp(0x80, x17, sp, x16, false));
+			this-&gt;code_after.emit(stp(0x90, x19, sp, x18, false));
+			this-&gt;code_after.emit(stp(0xA0, x21, sp, x20, false));
+			this-&gt;code_after.emit(stp(0xB0, x23, sp, x22, false));
+			this-&gt;code_after.emit(stp(0xC0, x25, sp, x24, false));
+			this-&gt;code_after.emit(stp(0xD0, x27, sp, x26, false));
+			this-&gt;code_after.emit(stp(0xE0, lr, sp, fp, false));
+			this-&gt;code_after.emit(sub(0x80, sp, sp));
+			this-&gt;code_after.emit(stp(0x0, q1, sp, q0, true));
+			this-&gt;code_after.emit(stp(0x20, q3, sp, q2, true));
+			this-&gt;code_after.emit(stp(0x40, q5, sp, q4, true));
+			this-&gt;code_after.emit(stp(0x60, q7, sp, q6, true));
+
+			this-&gt;code_after.emit(ldrImmi(27,x28,true));
+			this-&gt;code_after.emit(blr(x28));
+
+			this-&gt;code_after.emit(ldp_signed_offset(0x0, q1, sp, q0, true));
+			this-&gt;code_after.emit(ldp_signed_offset(0x20, q3, sp, q2, true));
+			this-&gt;code_after.emit(ldp_signed_offset(0x40, q5, sp, q4, true));
+			this-&gt;code_after.emit(ldp_signed_offset(0x60, q7, sp, q6, true));
+			this-&gt;code_after.emit(add(0x80, sp, sp));
+			this-&gt;code_after.emit(ldp_signed_offset(0x0, x1, sp, x0, false));
+			this-&gt;code_after.emit(ldp_signed_offset(0x10, x3, sp, x2, false));
+			this-&gt;code_after.emit(ldp_signed_offset(0x20, x5, sp, x4, false));
+			this-&gt;code_after.emit(ldp_signed_offset(0x30, x7, sp, x6, false));
+			this-&gt;code_after.emit(ldp_signed_offset(0x40, x9, sp, x8, false));
+			this-&gt;code_after.emit(ldp_signed_offset(0x50, x11, sp, x10, false));
+			this-&gt;code_after.emit(ldp_signed_offset(0x60, x13, sp, x12, false));
+			this-&gt;code_after.emit(ldp_signed_offset(0x70, x15, sp, x14, false));
+			this-&gt;code_after.emit(ldp_signed_offset(0x80, x17, sp, x16, false));
+			this-&gt;code_after.emit(ldp_signed_offset(0x90, x19, sp, x18, false));
+			this-&gt;code_after.emit(ldp_signed_offset(0xA0, x21, sp, x20, false));
+			this-&gt;code_after.emit(ldp_signed_offset(0xB0, x23, sp, x22, false));
+			this-&gt;code_after.emit(ldp_signed_offset(0xC0, x25, sp, x24, false));
+			this-&gt;code_after.emit(ldp_signed_offset(0xD0, x27, sp, x26, false));
+			this-&gt;code_after.emit(ldp_signed_offset(0xE0, lr, sp, fp, false));
+			this-&gt;code_after.emit(add(0xf0, sp, sp));
+			this-&gt;code_after.emit(msr_NZCV(x28));
+
+			this-&gt;code_after.emit(ret());//get ret address
+			this-&gt;code_after.emit((uint64_t)get_ret_pointer);
+			this-&gt;code_after.emit((uint64_t)set_new_func_pointer);//real
+			using namespace std;
+			cout&lt;&lt;&quot;emit over!&quot;&lt;&lt;endl;
+			memcpy(this-&gt;func_after,this-&gt;code_after.code_address,sizeof(uint8_t) * this-&gt;code_after.size);
+		}
+		void BuildCode::build_step_5()
+		{
+			using namespace std;
+			cout&lt;&lt;&quot;-----------------------check after codes----------------------&quot;&lt;&lt;endl;
+			cout&lt;&lt;&quot;-----func after-----&quot;&lt;&lt;endl;
+			uint8_t *temp=(uint8_t*)this-&gt;func_after;
+			for (int i=0;i&lt;54*4;i++)
+			{
+				cout&lt;&lt;setw(2)&lt;&lt;setfill('0')&lt;&lt;hex&lt;&lt;(uint64_t)temp[i]&lt;&lt;&quot; &quot;;
+			}
+			cout&lt;&lt;endl;
+			cout&lt;&lt;&quot;--------end----------&quot;&lt;&lt;endl;
+		}
+
+		void BuildCode::set_mem_RWE()
+		{
+			uint64_t p = (uint64_t)(void *)(this-&gt;func_before);
+			void* p1 = (void*)(p - p % this-&gt;pagesize);
+			if (mprotect(p1, this-&gt;pagesize, PROT_READ | PROT_WRITE | PROT_EXEC) == -1)
+			{
+				perror(&quot;mprotect error1&quot;);
+				exit(errno);
+			}
+			p = (uint64_t)this-&gt;hook_addr;
+			void* p2= (void*)(p - p % this-&gt;pagesize);
+			if (mprotect(p2, pagesize, PROT_READ | PROT_WRITE | PROT_EXEC) == -1)
+			{
+				perror(&quot;mprotect error2&quot;);
+				exit(errno);
+			}
+			p=(uint64_t)(void *)(this-&gt;func_after);
+			void* p3= (void*)(p - p % this-&gt;pagesize);
+			if (mprotect(p3, pagesize, PROT_READ | PROT_WRITE | PROT_EXEC) == -1)
+			{
+				perror(&quot;mprotect error3&quot;);
+				exit(errno);
+			}
+
+		}
+		void BuildCode::set_mem_RE()
+		{
+			uint64_t p = (uint64_t)this-&gt;func_before;
+			void* p1 = (void*)(p - p % this-&gt;pagesize);
+			if (mprotect(p1, pagesize, PROT_READ | PROT_EXEC) == -1)
+			{
+				perror(&quot;mprotect error4&quot;);
+				exit(errno);
+			}
+			p = (uint64_t)this-&gt;hook_addr;
+			void* p2 = (void*)(p - p % this-&gt;pagesize);
+			if (mprotect(p2, pagesize,  PROT_READ|PROT_EXEC) == -1)
+			{
+				perror(&quot;mprotect error5&quot;);
+				exit(errno);
+			}
+			p=(uint64_t)(void *)(this-&gt;func_after);
+			void* p3= (void*)(p - p % this-&gt;pagesize);
+			if (mprotect(p3, pagesize, PROT_READ | PROT_EXEC) == -1)
+			{
+				perror(&quot;mprotect error6&quot;);
+				exit(errno);
+			}
+		}
+
+
+
+		uint64_t sp_value=0,fake_sp_value=0;
+		void *sp_pointer=0;
+		long double neon_list[8]={0};
+		uint64_t normal_list[8]={0};
+		uint64_t lr_value=0;
+
+		void *q0_pointer;
+		void *x0_pointer;
+		void *lr_pointer;
+		void get_args()
+		{
+#if defined(__aarch64__)
+			__asm__ __volatile__(
+			&quot;mov %0,sp\n&quot;
+			:&quot;+&amp;r&quot;(fake_sp_value)
+			:
+			:&quot;memory&quot;
+			);
+#endif
+			check_register();
+			return;
+
+		}
+		void check_register()
+		{
+			//flush_cache_all();
+			using namespace std;
+			cout&lt;&lt;&quot;----------------------------&quot;&lt;&lt;endl;
+			cout&lt;&lt;&quot;check registers running !&quot;&lt;&lt;endl;
+			sp_value=fake_sp_value+0x10;
+			cout&lt;&lt;&quot;sp_value=&quot;&lt;&lt;hex&lt;&lt;sp_value&lt;&lt;endl;
+			sp_pointer=(void *)sp_value;//保存sp值
+
+			q0_pointer=(void *)sp_value;
+			x0_pointer=(void *)(sp_value+0x80);
+			lr_pointer=(void *)(sp_value+0x80+29*0x8);
+			cout&lt;&lt;&quot;yes&quot;&lt;&lt;endl;
+			//normal_list=(uint64_t *)(sp_value+0x80);
+			for(int i=0;i&lt;8;i++)
+			{
+				neon_list[i]=((long double*)sp_value)[i];
+				normal_list[i]=((uint64_t*)(sp_value+0x80))[i];
+			}
+			for(int i=0;i&lt;8;i++)
+			{
+				
+				cout&lt;&lt;&quot;第&quot;&lt;&lt;i+1&lt;&lt;&quot;个浮点寄存器:&quot;&lt;&lt;endl;
+				cout&lt;&lt;&quot;long double=&quot;&lt;&lt;neon_list[i]&lt;&lt;endl;
+				Neon_Registers[i]=neon_list[i];
+				void *temp=(void *)(neon_list+i);
+				cout&lt;&lt;&quot;double=&quot;&lt;&lt;*(double *)temp&lt;&lt;endl;
+				cout&lt;&lt;&quot;float=&quot;&lt;&lt;*(float *)temp&lt;&lt;endl;
+			}
+			for(int i=0;i&lt;8;i++)
+			{
+				
+				cout&lt;&lt;&quot;第&quot;&lt;&lt;i+1&lt;&lt;&quot;个普通寄存器:&quot;&lt;&lt;endl;
+				cout&lt;&lt;&quot;uint64_t=&quot;&lt;&lt;hex&lt;&lt;normal_list[i]&lt;&lt;endl;
+				void *temp=(void *)(normal_list+i);
+				cout&lt;&lt;&quot;int=&quot;&lt;&lt;*(int*)temp&lt;&lt;endl;
+			}
+			lr_value=((uint64_t*)(sp_value+0x80))[29];
+			cout&lt;&lt;&quot;----------------------------&quot;&lt;&lt;endl;
+			return;
+		}
+
+		void get_ret(uint64_t xr,long double qr)//get orig ret
+		{
+			using namespace std;
+			cout&lt;&lt;&quot;get orig ret run&quot;&lt;&lt;endl;
+			
+			
+// #if defined(__aarch64__)
+// 			__asm__ __volatile__(
+// 			&quot;mov %0,sp\n&quot;
+// 			:&quot;+&amp;r&quot;(sp_pointer_get_orig_rets)
+// 			:
+// 			:
+// 			);
+// #endif
+			//check_orig_ret();
+		}
+		// void check_orig_ret()
+		// {
+		// 	using namespace std;
+		// 	cout&lt;&lt;&quot;check_orig_ret&quot;&lt;&lt;endl;
+		// 	sp_pointer_q0=(void *)(sp_pointer_get_orig_rets+0x30);
+		// 	long double *p1=(long double *)sp_pointer_q0;
+		// 	q0_orig_ret=p1[0];
+		// 	sp_pointer_x0=(long double*)(sp_pointer_get_orig_rets+0x80+0x30);
+		// 	uint64_t *p2=(uint64_t *)sp_pointer_x0;
+		// 	x0_orig_ret=p2[0];
+		// 	sp_pointer_lr=(void *)&amp;(p2[29]);
+
+		// 	cout&lt;&lt;&quot;orig return value x0=&quot;&lt;&lt;x0_orig_ret&lt;&lt;endl;
+		// 	cout&lt;&lt;&quot;orig return value q0=&quot;&lt;&lt;q0_orig_ret&lt;&lt;endl;
+
+			
+
+		// }
+		long double orig_q0_value;
+		uint64_t orig_x0_value;
+		uint64_t set_new_func()
+		{
+			using namespace std;
+			cout&lt;&lt;&quot;----------------------------&quot;&lt;&lt;endl;
+			cout&lt;&lt;&quot;get orig ret&quot;&lt;&lt;endl;
+			uint64_t orig_uint64_t_x0=*((uint64_t*)x0_pointer);
+			uint64_t orig_int_x0=*((int*)x0_pointer);
+			long double orig_long_double_q0=*((long double*)q0_pointer);
+			double orig_double_q0=*((double*)q0_pointer);
+			float orig_float_q0=*((float*)q0_pointer);
+			cout&lt;&lt;&quot;orig uint64_t x0=&quot;&lt;&lt;hex&lt;&lt;orig_uint64_t_x0&lt;&lt;endl;
+			cout&lt;&lt;&quot;orig int x0=&quot;&lt;&lt;hex&lt;&lt;orig_int_x0&lt;&lt;endl;
+			cout&lt;&lt;&quot;orig long double q0=&quot;&lt;&lt;orig_long_double_q0&lt;&lt;endl;
+			cout&lt;&lt;&quot;orig double q0=&quot;&lt;&lt;orig_double_q0&lt;&lt;endl;
+			cout&lt;&lt;&quot;orig float q0=&quot;&lt;&lt;orig_float_q0&lt;&lt;endl;
+			cout&lt;&lt;&quot;----------------------------&quot;&lt;&lt;endl;
+			orig_x0_value=orig_uint64_t_x0;
+			uint64_t temp_ret_value=(*template_new_func)(Normal_Registers[0],Normal_Registers[1]
+					,Normal_Registers[2],Normal_Registers[3],Normal_Registers[4],Normal_Registers[5]
+					,Normal_Registers[6],Normal_Registers[7],Neon_Registers[0],Neon_Registers[1]
+					,Neon_Registers[2],Neon_Registers[3],Neon_Registers[4],Neon_Registers[5]
+					,Neon_Registers[6],Neon_Registers[7]);
+			//cout&lt;&lt;&quot;new func end&quot;&lt;&lt;endl;
+#if defined(__aarch64__)
+			__asm__ __volatile__(
+			&quot;str q0,[%0]\n&quot;//push q0
+			&quot;str %1,[%2]\n&quot;//push x0
+			&quot;str %3,[%4]&quot;//push lr
+			:
+			:&quot;r&quot;(q0_pointer),&quot;r&quot;(temp_ret_value),&quot;r&quot;(x0_pointer),&quot;r&quot;(lr_value),&quot;r&quot;(lr_pointer)
+			:&quot;memory&quot;
+			);
+#endif
+			cout&lt;&lt;&quot;----------------------------&quot;&lt;&lt;endl;
+			cout&lt;&lt;&quot;get new ret&quot;&lt;&lt;endl;
+			uint64_t new_uint64_t_x0=*((uint64_t*)x0_pointer);
+			uint64_t new_int_x0=*((int*)x0_pointer);
+			long double new_long_double_q0=*((long double*)q0_pointer);
+			double new_double_q0=*((double*)q0_pointer);
+			float new_float_q0=*((float*)q0_pointer);
+			cout&lt;&lt;&quot;new uint64_t x0=&quot;&lt;&lt;hex&lt;&lt;new_uint64_t_x0&lt;&lt;endl;
+			cout&lt;&lt;&quot;new int x0=&quot;&lt;&lt;hex&lt;&lt;new_int_x0&lt;&lt;endl;
+			cout&lt;&lt;&quot;new long double q0=&quot;&lt;&lt;new_long_double_q0&lt;&lt;endl;
+			cout&lt;&lt;&quot;new double q0=&quot;&lt;&lt;new_double_q0&lt;&lt;endl;
+			cout&lt;&lt;&quot;new float q0=&quot;&lt;&lt;new_float_q0&lt;&lt;endl;
+			cout&lt;&lt;&quot;----------------------------&quot;&lt;&lt;endl;
+			get_ret_sp(temp_ret_value);
+			return temp_ret_value;
+		}
+
+		void get_ret_sp(uint64_t ret)
+		{
+			using namespace std;
+			cout&lt;&lt;&quot;----------------------------&quot;&lt;&lt;endl;
+			cout&lt;&lt;&quot;after hook run&quot;&lt;&lt;endl;
+			for(int i=0;i&lt;8;i++)
+			{
+				neon_list[i]=((long double*)sp_value)[i];
+				cout&lt;&lt;&quot;第&quot;&lt;&lt;i+1&lt;&lt;&quot;个浮点寄存器:&quot;&lt;&lt;endl;
+				cout&lt;&lt;&quot;long double=&quot;&lt;&lt;neon_list[i]&lt;&lt;endl;
+				Neon_Registers[i]=neon_list[i];
+				void *temp=(void *)(neon_list+i);
+				cout&lt;&lt;&quot;double=&quot;&lt;&lt;*(double *)temp&lt;&lt;endl;
+				cout&lt;&lt;&quot;float=&quot;&lt;&lt;*(float *)temp&lt;&lt;endl;
+			}
+			for(int i=0;i&lt;8;i++)
+			{
+				Normal_Registers[i]=((uint64_t*)(sp_value+0x80))[i];
+				cout&lt;&lt;&quot;第&quot;&lt;&lt;i+1&lt;&lt;&quot;个普通寄存器:&quot;&lt;&lt;endl;
+				cout&lt;&lt;&quot;uint64_t=&quot;&lt;&lt;hex&lt;&lt;normal_list[i]&lt;&lt;endl;
+				Normal_Registers[i]=normal_list[i];
+				void *temp=(void *)(normal_list+i);
+				cout&lt;&lt;&quot;int=&quot;&lt;&lt;*(int*)temp&lt;&lt;endl;
+			}
+			cout&lt;&lt;&quot;----------------------------&quot;&lt;&lt;endl;
+			
+		}
+
+		// void BuildCode::check_new_ret()
+		// {
+
+		// 	uint64_t *p1=(uint64_t*)(x0_pointer);
+		// 	x0_new_ret=p1[0];
+		// 	long double *p2=(long double*)(q0_pointer);
+		// 	q0_new_ret=p2[0];
+		// 	using namespace std;
+		// 	cout&lt;&lt;&quot;new return value x0=&quot;&lt;&lt;x0_new_ret&lt;&lt;endl;
+		// 	cout&lt;&lt;&quot;new return value x0=&quot;&lt;&lt;q0_new_ret&lt;&lt;endl;
+
+		// }
+		uint64_t template_orig_func()
+		{
+#if defined(__aarch64__)
+			__asm__ __volatile__(
+			&quot;ldr q0,[%0]\n&quot;
+			:
+			:&quot;r&quot;(q0_pointer)
+			:
+			);
+#endif
+			return orig_x0_value;
+		}
+	}
+}
+
 </code></pre>
 ]]></content>
     </entry>
