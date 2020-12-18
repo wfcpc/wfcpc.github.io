@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://wfcpc.github.io</id>
-    <title>Gridea</title>
-    <updated>2020-12-18T10:59:46.930Z</updated>
+    <title>blog</title>
+    <updated>2020-12-18T11:03:07.911Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://wfcpc.github.io"/>
     <link rel="self" href="https://wfcpc.github.io/atom.xml"/>
-    <subtitle>温故而知新</subtitle>
+    <subtitle>一个普普通通没得技术含量的blog</subtitle>
     <logo>https://wfcpc.github.io/images/avatar.png</logo>
     <icon>https://wfcpc.github.io/favicon.ico</icon>
-    <rights>All rights reserved 2020, Gridea</rights>
+    <rights>All rights reserved 2020, blog</rights>
     <entry>
         <title type="html"><![CDATA[Arm64 Inline Hook (No Cache Flush)]]></title>
         <id>https://wfcpc.github.io/post/arm64-inline-hook/</id>
