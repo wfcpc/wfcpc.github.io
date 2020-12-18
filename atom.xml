@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://wfcpc.github.io</id>
     <title>Gridea</title>
-    <updated>2020-12-18T10:44:27.196Z</updated>
+    <updated>2020-12-18T10:47:55.421Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://wfcpc.github.io"/>
     <link rel="self" href="https://wfcpc.github.io/atom.xml"/>
@@ -16,50 +16,54 @@
         <link href="https://wfcpc.github.io/post/arm64-inline-hook/">
         </link>
         <updated>2020-11-25T05:26:46.000Z</updated>
-        <content type="html"><![CDATA[<p>测试类<br>
-``<br>
-#include <iostream><br>
-#include &quot;inlinehook_arm64.h&quot;</p>
-<p>#define HOOK_DEF(ret, func, ...) <br>
-ret (*orig_##func)(<strong>VA_ARGS</strong>); <br>
-ret new_##func(<strong>VA_ARGS</strong>)</p>
-<p>HOOK_DEF(float, hook_np,int* base1,int*  base2,int*  base3) {<br>
-float handle = orig_hook_np(base1,base2,base3);<br>
-using namespace std;<br>
-cout&lt;&lt;&quot;got orig ret value = &quot;&lt;&lt;handle&lt;&lt;endl;<br>
-cout&lt;&lt;&quot;arg1=&quot;&lt;&lt;base1&lt;&lt;endl;<br>
-cout&lt;&lt;&quot;arg2=&quot;&lt;&lt;base2&lt;&lt;endl;<br>
-cout&lt;&lt;&quot;arg3=&quot;&lt;&lt;base3&lt;&lt;endl;<br>
-handle=90;<br>
-return handle;<br>
-}<br>
-float hook_np( int*  base1, int*  base2, int*  base3)<br>
-{<br>
-float a=1.1;<br>
-float b=2.2;<br>
-float c=3.3;<br>
-using namespace std;<br>
-cout&lt;&lt;&quot;hook_np_orig running&quot;&lt;&lt;endl;<br>
-float d=a+b+c;<br>
-return d;<br>
-}<br>
-int main()<br>
-{<br>
-using namespace std;<br>
-Inlinehook(  (void*)hook_np, (void *) new_hook_np,<br>
-(void **) &amp;orig_hook_np);<br>
-int a=12,b=23,c=34;<br>
-int *aa;<br>
-int *bb;<br>
-int *cc;<br>
-double la=1.1,lb=2.2,lc=3.3;</p>
-<pre><code>float ret=hook_np(aa,bb,cc);
-cout&lt;&lt;&quot;finally ret=&quot;&lt;&lt;ret&lt;&lt;endl;
+        <content type="html"><![CDATA[<p>测试类</p>
+<pre><code class="language-c++">#include &lt;iostream&gt;
+#include &quot;inlinehook_arm64.h&quot;
 
-return 0;
+#define HOOK_DEF(ret, func, ...) \
+  ret (*orig_##func)(__VA_ARGS__); \
+  ret new_##func(__VA_ARGS__)
+
+
+
+HOOK_DEF(float, hook_np,int* base1,int*  base2,int*  base3) {
+    float handle = orig_hook_np(base1,base2,base3);
+    using namespace std;
+    cout&lt;&lt;&quot;got orig ret value = &quot;&lt;&lt;handle&lt;&lt;endl;
+    cout&lt;&lt;&quot;arg1=&quot;&lt;&lt;base1&lt;&lt;endl;
+    cout&lt;&lt;&quot;arg2=&quot;&lt;&lt;base2&lt;&lt;endl;
+    cout&lt;&lt;&quot;arg3=&quot;&lt;&lt;base3&lt;&lt;endl;
+    handle=90;
+    return handle;
+}
+float hook_np( int*  base1, int*  base2, int*  base3)
+{
+    float a=1.1;
+    float b=2.2;
+    float c=3.3;
+    using namespace std;
+    cout&lt;&lt;&quot;hook_np_orig running&quot;&lt;&lt;endl;
+    float d=a+b+c;
+    return d;
+}
+int main()
+{
+    using namespace std;
+  Inlinehook(  (void*)hook_np, (void *) new_hook_np,
+                        (void **) &amp;orig_hook_np);
+    int a=12,b=23,c=34;
+    int *aa;
+    int *bb;
+    int *cc;
+    double la=1.1,lb=2.2,lc=3.3;
+    
+    float ret=hook_np(aa,bb,cc);
+    cout&lt;&lt;&quot;finally ret=&quot;&lt;&lt;ret&lt;&lt;endl;
+
+    return 0;
+	
+}
 </code></pre>
-<p>}<br>
-``</p>
 ]]></content>
     </entry>
     <entry>
