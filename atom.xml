@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://wfcpc.github.io</id>
     <title>blog</title>
-    <updated>2020-12-22T09:52:47.243Z</updated>
+    <updated>2020-12-28T08:23:58.790Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://wfcpc.github.io"/>
     <link rel="self" href="https://wfcpc.github.io/atom.xml"/>
@@ -87,14 +87,14 @@ Author：张丛祥  Address：wfcpc.github.io</p>
 ]]></content>
     </entry>
     <entry>
-        <title type="html"><![CDATA[Arm64 Inline Hook (No Cache Flush)]]></title>
+        <title type="html"><![CDATA[Arm64 Inline Hook (无指令修复)]]></title>
         <id>https://wfcpc.github.io/post/arm64-inline-hook/</id>
         <link href="https://wfcpc.github.io/post/arm64-inline-hook/">
         </link>
         <updated>2020-11-25T05:26:46.000Z</updated>
-        <summary type="html"><![CDATA[<p>实现arm64 inline hook(但是没得缓存刷新，导致运行结果经常抽风,待解决)</p>
+        <summary type="html"><![CDATA[<p>实现arm64 inline hook(实机测试成功，无pc related指令修复)</p>
 ]]></summary>
-        <content type="html"><![CDATA[<p>实现arm64 inline hook(但是没得缓存刷新，导致运行结果经常抽风,待解决)</p>
+        <content type="html"><![CDATA[<p>实现arm64 inline hook(实机测试成功，无pc related指令修复)</p>
 <!-- more -->
 <p>##测试类wfcpc.cc</p>
 <pre><code class="language-c++">#include &lt;iostream&gt;
@@ -1074,8 +1074,8 @@ namespace wfcpc
 		uint64_t (*set_new_func_pointer)()=set_new_func;
 		void get_ret_sp(uint64_t ret);
 		
-
-
+		void flush_cache_all();
+		void __flush_dcache_area(void *addr,unsigned long long len);
 
 		BuildCode::BuildCode()
 		{}
@@ -1136,7 +1136,7 @@ namespace wfcpc
 			cout&lt;&lt;endl;
 		}
 
-		void BuildCode::build_step_1()//ԭ����λ��
+		void BuildCode::build_step_1()
 		{
 			using namespace std;
 
@@ -1421,11 +1421,17 @@ namespace wfcpc
 		}
 		void check_register()
 		{
-			//flush_cache_all();
+			
 			using namespace std;
 			cout&lt;&lt;&quot;----------------------------&quot;&lt;&lt;endl;
 			cout&lt;&lt;&quot;check registers running !&quot;&lt;&lt;endl;
 			sp_value=fake_sp_value+0x10;
+			
+			// uint64_t temp_p = (uint64_t)(void *)(sp_value);
+			// int pagesize=sysconf(_SC_PAGE_SIZE);
+			// void* temp_p1 = (void*)(temp_p - temp_p % pagesize);
+			// __flush_dcache_area(temp_p1,pagesize);
+			
 			cout&lt;&lt;&quot;sp_value=&quot;&lt;&lt;hex&lt;&lt;sp_value&lt;&lt;endl;
 			sp_pointer=(void *)sp_value;//保存sp值
 
@@ -1454,6 +1460,7 @@ namespace wfcpc
 				
 				cout&lt;&lt;&quot;第&quot;&lt;&lt;i+1&lt;&lt;&quot;个普通寄存器:&quot;&lt;&lt;endl;
 				cout&lt;&lt;&quot;uint64_t=&quot;&lt;&lt;hex&lt;&lt;normal_list[i]&lt;&lt;endl;
+				Normal_Registers[i]=normal_list[i];
 				void *temp=(void *)(normal_list+i);
 				cout&lt;&lt;&quot;int=&quot;&lt;&lt;*(int*)temp&lt;&lt;endl;
 			}
@@ -1503,6 +1510,7 @@ namespace wfcpc
 			using namespace std;
 			cout&lt;&lt;&quot;----------------------------&quot;&lt;&lt;endl;
 			cout&lt;&lt;&quot;get orig ret&quot;&lt;&lt;endl;
+			//flush_cache_all();
 			uint64_t orig_uint64_t_x0=*((uint64_t*)x0_pointer);
 			uint64_t orig_int_x0=*((int*)x0_pointer);
 			long double orig_long_double_q0=*((long double*)q0_pointer);
@@ -1600,6 +1608,111 @@ namespace wfcpc
 #endif
 			return orig_x0_value;
 		}
+		void __flush_cache_all();
+		void flush_cache_all()
+		{
+#if defined(__aarch64__)		
+			__asm__(
+				&quot;mov x12, lr\n&quot;
+			);
+#endif
+			__flush_cache_all();
+#if defined(__aarch64__)	
+			__asm__(
+				&quot;mov x0,#0\n&quot;
+				&quot;ic ialluis\n&quot;
+				&quot;ret x12\n&quot;
+			);
+#endif
+		}
+		void __flush_cache_all()
+		{
+#if defined(__aarch64__)
+			__asm__ (
+				
+
+				&quot;dsb	sy\n&quot;
+				&quot;mrs	x0, clidr_el1\n&quot;			// read clidr
+				&quot;and	x3, x0, #0x7000000\n&quot;		// extract loc from clidr
+				&quot;lsr	x3, x3, #23\n&quot;			// left align loc bit field
+				&quot;cbz	x3, #0x84\n&quot;			// if loc is 0, then no need to clean
+				&quot;mov	x10, #0\n&quot;				// start clean at cache level 0
+			
+				&quot;add	x2, x10, x10, lsr #1\n&quot;		// work out 3x current cache level
+				&quot;lsr	x1, x0, x2\n&quot;		// extract cache type bits from clidr
+				&quot;and	x1, x1, #7\n&quot;			// mask of the bits for current cache only
+				&quot;cmp	x1, #2\n&quot;				// see what cache we have at this level
+				&quot;b.lt	#0x60\n&quot;				// skip if no cache, or just i-cache
+											//&quot;save_and_disable_irqs x9\n&quot;		// make CSSELR and CCSIDR access atomic
+
+				&quot;mrs	x9, daif\n&quot;
+				&quot;msr	daifset, #2\n&quot;
+
+				&quot;msr	csselr_el1, x10\n&quot;			// select current cache level in csselr
+				&quot;isb\n&quot;					// isb to sych the new cssr&amp;csidr
+				&quot;mrs	x1, ccsidr_el1\n&quot;			// read the new ccsidr
+
+												//&quot;restore_irqs x9\n&quot;
+				&quot;msr	daif, x9\n&quot;
+
+				&quot;and	x2, x1, #7\n&quot;			// extract the length of the cache lines
+				&quot;add	x2, x2, #4\n&quot;			// add 4 (line length offset)
+				&quot;mov	x4, #0x3ff\n&quot;
+				&quot;and	x4, x4, x1, lsr #3\n&quot;		// find maximum number on the way size
+				&quot;clz	w5, w4\n&quot;				// find bit position of way size increment
+				&quot;mov	x7, #0x7fff\n&quot;
+				&quot;and	x7, x7, x1, lsr #13\n&quot;		// extract max number of the index size
+			
+				&quot;mov	x9, x4\n&quot;				// create working copy of max way size
+			
+				&quot;lsl	x6, x9, x5\n&quot;
+				&quot;orr	x11, x10, x6\n&quot;			// factor way and cache number into x11
+				&quot;lsl	x6, x7, x2\n&quot;
+				&quot;orr	x11, x11, x6\n&quot;			// factor index number into x11
+				&quot;dc	cisw, x11\n&quot;			// clean &amp; invalidate by set/way
+				&quot;subs	x9, x9, #1\n&quot;			// decrement the way
+				&quot;b.ge	#-0x18\n&quot;
+				&quot;subs	x7, x7, #1\n&quot;			// decrement the index
+				&quot;b.ge	#-0x24\n&quot;
+			
+				&quot;add	x10, x10, #2\n&quot;			// increment cache number
+				&quot;cmp	x3, x10\n&quot;
+				&quot;b.gt	#-0x78\n&quot;
+			
+				&quot;mov	x10,#0\n&quot;				// swith back to cache level 0
+				&quot;msr	csselr_el1, x10\n&quot;			// select current cache level in csselr
+				&quot;dsb	sy\n&quot;
+				&quot;isb\n&quot;
+				&quot;ret&quot;
+
+			);
+#endif
+		}
+
+		void __flush_dcache_area(void *addr,unsigned long long len)
+		{
+#if defined(__aarch64__)
+			__asm__ (
+				&quot;mrs x3,ctr_el0\n&quot;
+				&quot;lsr x3,x3,#16\n&quot;
+				&quot;and x3,x3,#0xf\n&quot;
+				&quot;mov x2,#4\n&quot;
+				&quot;lsl x2,x2,x3\n&quot;
+
+				&quot;add x1,x0,x1\n&quot;
+				&quot;sub x3,x2,#1\n&quot;
+				&quot;bic x0,x0,x3\n&quot;
+				&quot;dc civac,x0\n&quot;
+				&quot;add x0,x0,x2\n&quot;
+				&quot;cmp x0,x1\n&quot;
+				&quot;b.lo #-0xc\n&quot;
+				&quot;dsb sy\n&quot;
+				&quot;ret&quot;
+			);
+		}
+#endif
+	
+	
 	}
 }
 
