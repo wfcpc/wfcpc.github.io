@@ -3,7 +3,7 @@
     <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Arm64 Inline Hook (无指令修复) | blog</title>
-<link rel="shortcut icon" href="https://wfcpc.github.io/favicon.ico?v=1609143836827">
+<link rel="shortcut icon" href="https://wfcpc.github.io/favicon.ico?v=1609143908954">
 <link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
 <link rel="stylesheet" href="https://wfcpc.github.io/styles/main.css">
 <link rel="alternate" type="application/atom+xml" title="Arm64 Inline Hook (无指令修复) | blog - Atom Feed" href="https://wfcpc.github.io/atom.xml">
@@ -14,8 +14,8 @@
     <meta name="description" content="实现arm64 inline hook(实机测试成功，无pc related指令修复)
 
 ##测试类wfcpc.cc
-#include &lt;iostream&gt;
-#include &quot;inlinehook_arm64.h&q..." />
+// wfcpc.cpp : 此文件包含 &quot;main&quot; 函数。程序执行将在此处开始并结束。
+// g+..." />
     <meta name="keywords" content="" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
     <script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
@@ -25,7 +25,7 @@
       <div class="main-content">
         <div class="site-header">
   <a href="https://wfcpc.github.io">
-  <img class="avatar" src="https://wfcpc.github.io/images/avatar.png?v=1609143836827" alt="">
+  <img class="avatar" src="https://wfcpc.github.io/images/avatar.png?v=1609143908954" alt="">
   </a>
   <h1 class="site-title">
     blog
@@ -85,7 +85,7 @@
                 2020-11-25
               </span>
               <span>
-                42 min read
+                43 min read
               </span>
               
             </div>
@@ -95,7 +95,10 @@
                 <p>实现arm64 inline hook(实机测试成功，无pc related指令修复)</p>
 <!-- more -->
 <p>##测试类wfcpc.cc</p>
-<pre><code class="language-c++">#include &lt;iostream&gt;
+<pre><code class="language-c++">// wfcpc.cpp : 此文件包含 &quot;main&quot; 函数。程序执行将在此处开始并结束。
+// g++ build_code.cc codes_arm64.cc inlinehook_arm64.cc registers_arm64.cc wfcpc.cc -o out
+
+#include &lt;iostream&gt;
 #include &quot;inlinehook_arm64.h&quot;
 
 #define HOOK_DEF(ret, func, ...) \
@@ -133,14 +136,22 @@ int main()
     int *aa;
     int *bb;
     int *cc;
+    aa=&amp;a;
+    bb=&amp;b;
+    cc=&amp;c;
     double la=1.1,lb=2.2,lc=3.3;
-    
+    cout&lt;&lt;&quot;------in main-------&quot;&lt;&lt;endl;
+    cout&lt;&lt;&quot;aa addr=&quot;&lt;&lt;aa&lt;&lt;endl;
+    cout&lt;&lt;&quot;bb addr=&quot;&lt;&lt;bb&lt;&lt;endl;
+    cout&lt;&lt;&quot;cc addr=&quot;&lt;&lt;cc&lt;&lt;endl;
     float ret=hook_np(aa,bb,cc);
     cout&lt;&lt;&quot;finally ret=&quot;&lt;&lt;ret&lt;&lt;endl;
 
     return 0;
 	
 }
+
+
 </code></pre>
 <p>##接口类inlinehook_arm64.h</p>
 <pre><code class="language-c++">#pragma once
